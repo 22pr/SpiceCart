@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.spicecart.ui.theme.SpiceCartTheme
 
+
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -171,8 +172,13 @@ fun LoginScreen(navController: NavController) {
 
             // Login Button
             Button(
-                onClick = { navController.navigate("home") },
-                enabled = isLoginEnabled, //  Disabled until valid inputs
+                onClick = {
+                    // Temporarily allowing dummy credentials for navigation
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        navController.navigate("home")
+                    }
+                },
+                enabled = email.isNotEmpty() && password.isNotEmpty(), // Only check for non-empty input
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)), // Golden Yellow
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
@@ -186,6 +192,7 @@ fun LoginScreen(navController: NavController) {
                     color = Color.Black
                 )
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
