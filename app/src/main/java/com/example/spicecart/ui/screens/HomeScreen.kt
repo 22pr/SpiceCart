@@ -15,9 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavController
+
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController)
+ {
     var menuExpanded by remember { mutableStateOf(false) }
 
     Column(
@@ -54,7 +57,11 @@ fun HomeScreen() {
                 ) {
                     DropdownMenuItem(
                         text = { Text("Profile") },
-                        onClick = { /* Navigate to Profile */ menuExpanded = false }
+                        onClick = {
+                            navController.navigate("profile")
+                            menuExpanded = false
+                        }
+
                     )
                     DropdownMenuItem(
                         text = { Text("Settings") },

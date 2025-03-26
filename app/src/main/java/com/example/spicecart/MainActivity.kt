@@ -29,6 +29,8 @@ import androidx.navigation.compose.*
 import com.example.spicecart.ui.theme.SpiceCartTheme
 import kotlinx.coroutines.delay
 import com.example.spicecart.ui.screens.*
+import com.example.spicecart.ui.screens.ProfileScreen
+
 
 
 
@@ -53,6 +55,8 @@ fun AppNavigation(navController: NavHostController) {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignupScreen(navController) }
         composable("main") { BottomNavigationContainer() }
+        composable("profile") { ProfileScreen() }
+
     }
 }
 
@@ -98,6 +102,7 @@ fun BottomNavigationContainer() {
         BottomNavItem("My Orders", "orders", Icons.Default.List),
         BottomNavItem("Cart", "cart", Icons.Default.ShoppingCart),
         BottomNavItem("Payment", "payment", Icons.Default.AccountBalanceWallet)
+
     )
 
     var selectedItem by remember { mutableStateOf(0) }
@@ -128,10 +133,12 @@ fun BottomNavigationContainer() {
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { HomeScreen() }
+            composable("home") { HomeScreen(navController) }
+
             composable("orders") { OrdersScreen() }
             composable("cart") { CartScreen() }
             composable("payment") { PaymentScreen() }
+            composable("profile") { ProfileScreen() }
         }
     }
 }
