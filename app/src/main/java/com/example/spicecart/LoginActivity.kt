@@ -170,16 +170,17 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Login Button
             Button(
                 onClick = {
-                    // Temporarily allowing dummy credentials for navigation
+                    // Allow dummy login for now
                     if (email.isNotEmpty() && password.isNotEmpty()) {
-                        navController.navigate("home")
+                        navController.navigate("main") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 },
-                enabled = email.isNotEmpty() && password.isNotEmpty(), // Only check for non-empty input
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)), // Golden Yellow
+                enabled = email.isNotEmpty() && password.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,6 +193,7 @@ fun LoginScreen(navController: NavController) {
                     color = Color.Black
                 )
             }
+
 
 
             Spacer(modifier = Modifier.height(16.dp))

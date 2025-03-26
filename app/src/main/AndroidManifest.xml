@@ -31,10 +31,7 @@
             android:name=".SignupActivity"
             android:exported="true"
             android:label="Signup" />
-        <activity
-            android:name=".HomeActivity"
-            android:exported="true"
-            android:label="Home" />
+
     </application>
 
 </manifest>
