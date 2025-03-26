@@ -3,9 +3,12 @@ package com.example.spicecart.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,12 +18,61 @@ import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun HomeScreen() {
+    var menuExpanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5E1C8))
             .padding(16.dp)
     ) {
+        // Top App Bar Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Box {
+                IconButton(
+                    onClick = { menuExpanded = true },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White, shape = CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "User Menu",
+                        tint = Color(0xFF5D4037)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Profile") },
+                        onClick = { /* Navigate to Profile */ menuExpanded = false }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Settings") },
+                        onClick = { /* Navigate to Settings */ menuExpanded = false }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("About") },
+                        onClick = { /* Navigate to About */ menuExpanded = false }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Privacy Policy") },
+                        onClick = { /* Navigate to Privacy Policy */ menuExpanded = false }
+                    )
+                }
+            }
+        }
+
+        // Welcome Text
         Text(
             text = "Welcome to SpiceCart!",
             fontSize = 24.sp,
