@@ -34,18 +34,19 @@ fun PaymentScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF5E1C8))
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top
+                .padding(16.dp)
         ) {
-            Text("Payment", style = MaterialTheme.typography.headlineMedium, color = Color(0xFF5D4037))
+            Text(
+                text = "Payment",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color(0xFF5D4037)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -63,8 +64,8 @@ fun PaymentScreen() {
                 value = cardNumber,
                 onValueChange = { cardNumber = it },
                 label = { Text("Card Number") },
-                singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -75,8 +76,8 @@ fun PaymentScreen() {
                     value = expiry,
                     onValueChange = { expiry = it },
                     label = { Text("Expiry (MM/YY)") },
-                    singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 8.dp)
@@ -86,9 +87,9 @@ fun PaymentScreen() {
                     value = cvv,
                     onValueChange = { cvv = it },
                     label = { Text("CVV") },
-                    singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -107,7 +108,11 @@ fun PaymentScreen() {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (errorMessage != null) {
-                Text(text = errorMessage!!, color = Color.Red, fontSize = 14.sp)
+                Text(
+                    text = errorMessage ?: "",
+                    color = Color.Red,
+                    fontSize = 14.sp
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -122,15 +127,14 @@ fun PaymentScreen() {
 
             Button(
                 onClick = {
-                    // Basic Validations
                     if (cardName.isBlank() || cardNumber.length !in 12..19 ||
                         expiry.length < 5 || cvv.length != 3 || address.isBlank()
                     ) {
                         errorMessage = "Please enter all valid card and address details"
                     } else {
                         errorMessage = null
-                        paymentSuccess = true
                         cartItems.clear()
+                        paymentSuccess = true
                         scope.launch {
                             snackbarHostState.showSnackbar("Payment successful! Thank you 🎉")
                         }
@@ -141,7 +145,12 @@ fun PaymentScreen() {
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))
             ) {
-                Text("Pay £${"%.2f".format(total)}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(
+                    text = "Pay £${"%.2f".format(total)}",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
             }
 
             if (paymentSuccess) {

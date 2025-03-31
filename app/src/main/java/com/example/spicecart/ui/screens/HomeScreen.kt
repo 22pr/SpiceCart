@@ -22,9 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spicecart.R
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Shared cart
+// Shared cart list
 val cartItems = mutableStateListOf<CartItem>()
 
 data class Dish(val name: String, val image: Int, val price: Double, val category: String)
@@ -32,7 +33,10 @@ data class CartItem(val dish: Dish, var quantity: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    rootNavController: NavController, // used for global nav like cart/profile
+    localNavController: NavController // used for bottom nav tab switching
+) {
     var menuExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("All") }
     var selectedDish by remember { mutableStateOf<Dish?>(null) }
@@ -43,6 +47,7 @@ fun HomeScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     val categories = listOf("All", "Biryani", "South Indian", "Snacks", "Sweets", "Tandoori")
+
     val allDishes = listOf(
         Dish("Hyderabadi Biryani", R.drawable.biryani, 6.50, "Biryani"),
         Dish("Paneer Butter Masala", R.drawable.paneer, 5.99, "Tandoori"),
@@ -52,7 +57,8 @@ fun HomeScreen(navController: NavController) {
         Dish("Tandoori Chicken", R.drawable.tandoori_chicken, 7.20, "Tandoori")
     )
 
-    val filteredDishes = if (selectedCategory == "All") allDishes else allDishes.filter { it.category == selectedCategory }
+    val filteredDishes = if (selectedCategory == "All") allDishes
+    else allDishes.filter { it.category == selectedCategory }
 
     selectedDish?.let { dish ->
         ModalBottomSheet(
@@ -73,7 +79,11 @@ fun HomeScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(onClick = { if (quantity > 1) quantity-- }) { Text("-") }
-                    Text(text = "$quantity", fontSize = 18.sp, modifier = Modifier.padding(horizontal = 16.dp))
+                    Text(
+                        text = "$quantity",
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                     Button(onClick = { quantity++ }) { Text("+") }
                 }
 
@@ -88,7 +98,10 @@ fun HomeScreen(navController: NavController) {
                         coroutineScope.launch {
                             sheetState.hide()
                             snackbarHostState.showSnackbar("${dish.name} x$quantity added to cart")
+                            delay(300)
+                            localNavController.navigate("cart")
                         }
+
 
                         selectedDish = null
                         quantity = 1
@@ -110,7 +123,6 @@ fun HomeScreen(navController: NavController) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Top bar with dropdown
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                 Box {
                     IconButton(
@@ -124,7 +136,7 @@ fun HomeScreen(navController: NavController) {
 
                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                         DropdownMenuItem(text = { Text("Profile") }, onClick = {
-                            navController.navigate("profile")
+                            rootNavController.navigate("profile")
                             menuExpanded = false
                         })
                         DropdownMenuItem(text = { Text("Settings") }, onClick = { menuExpanded = false })

@@ -61,7 +61,9 @@ fun CartScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { navController.navigate("payment") },
+                onClick = {
+                    navController.navigate("payment")
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
                 modifier = Modifier.fillMaxWidth()
             ) {
