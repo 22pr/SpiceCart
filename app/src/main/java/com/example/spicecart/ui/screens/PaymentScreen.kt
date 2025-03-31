@@ -49,20 +49,20 @@ fun PaymentScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Cardholder Name", fontSize = 14.sp)
             OutlinedTextField(
                 value = cardName,
                 onValueChange = { cardName = it },
+                label = { Text("Cardholder Name") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Card Number", fontSize = 14.sp)
             OutlinedTextField(
                 value = cardNumber,
                 onValueChange = { cardNumber = it },
+                label = { Text("Card Number") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -70,39 +70,35 @@ fun PaymentScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Expiry (MM/YY)", fontSize = 14.sp)
-                    OutlinedTextField(
-                        value = expiry,
-                        onValueChange = { expiry = it },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth().padding(end = 4.dp)
-                    )
-                }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = expiry,
+                    onValueChange = { expiry = it },
+                    label = { Text("Expiry (MM/YY)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                )
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("CVV", fontSize = 14.sp)
-                    OutlinedTextField(
-                        value = cvv,
-                        onValueChange = { cvv = it },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                OutlinedTextField(
+                    value = cvv,
+                    onValueChange = { cvv = it },
+                    label = { Text("CVV") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Delivery Address", fontSize = 14.sp)
             OutlinedTextField(
                 value = address,
                 onValueChange = { address = it },
+                label = { Text("Delivery Address") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
@@ -127,13 +123,14 @@ fun PaymentScreen() {
             Button(
                 onClick = {
                     // Basic Validations
-                    if (cardName.isBlank() || cardNumber.length < 12 || expiry.length < 5 || cvv.length != 3 || address.isBlank()) {
-                        errorMessage = "Please enter valid payment and address details"
+                    if (cardName.isBlank() || cardNumber.length !in 12..19 ||
+                        expiry.length < 5 || cvv.length != 3 || address.isBlank()
+                    ) {
+                        errorMessage = "Please enter all valid card and address details"
                     } else {
                         errorMessage = null
                         paymentSuccess = true
                         cartItems.clear()
-
                         scope.launch {
                             snackbarHostState.showSnackbar("Payment successful! Thank you 🎉")
                         }

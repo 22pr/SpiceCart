@@ -46,13 +46,7 @@ fun CartScreen(navController: NavController) {
                 modifier = Modifier.weight(1f)
             ) {
                 items(cartItems) { item ->
-                    CartItemRow(item = item, onQuantityChanged = { updatedItem ->
-                        // Update state to trigger recomposition
-                        val index = cartItems.indexOfFirst { it.dish.name == updatedItem.dish.name }
-                        if (index != -1) {
-                            cartItems[index] = updatedItem.copy()
-                        }
-                    })
+                    CartItemRow(item)
                 }
             }
 
@@ -78,9 +72,7 @@ fun CartScreen(navController: NavController) {
 }
 
 @Composable
-fun CartItemRow(item: CartItem, onQuantityChanged: (CartItem) -> Unit) {
-    var quantity by remember { mutableStateOf(item.quantity) }
-
+fun CartItemRow(item: CartItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,46 +88,10 @@ fun CartItemRow(item: CartItem, onQuantityChanged: (CartItem) -> Unit) {
                 color = Color(0xFF5D4037)
             )
             Text(
-                text = "£${"%.2f".format(item.dish.price)} x $quantity",
+                text = "£${"%.2f".format(item.dish.price)} x ${item.quantity}",
                 color = Color.Gray,
                 fontSize = 14.sp
             )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(
-                onClick = {
-                    if (quantity > 1) {
-                        quantity--
-                        item.quantity = quantity
-                        onQuantityChanged(item)
-                    } else {
-                        cartItems.remove(item)
-                    }
-                },
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(32.dp)
-            ) {
-                Text("-", fontWeight = FontWeight.Bold)
-            }
-
-            Text(
-                text = "$quantity",
-                modifier = Modifier.padding(horizontal = 8.dp),
-                fontSize = 16.sp
-            )
-
-            OutlinedButton(
-                onClick = {
-                    quantity++
-                    item.quantity = quantity
-                    onQuantityChanged(item)
-                },
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(32.dp)
-            ) {
-                Text("+", fontWeight = FontWeight.Bold)
-            }
         }
     }
 }

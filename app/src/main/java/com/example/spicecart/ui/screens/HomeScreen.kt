@@ -54,7 +54,6 @@ fun HomeScreen(navController: NavController) {
 
     val filteredDishes = if (selectedCategory == "All") allDishes else allDishes.filter { it.category == selectedCategory }
 
-    // Bottom sheet for dish quantity selection
     selectedDish?.let { dish ->
         ModalBottomSheet(
             onDismissRequest = {
@@ -90,6 +89,7 @@ fun HomeScreen(navController: NavController) {
                             sheetState.hide()
                             snackbarHostState.showSnackbar("${dish.name} x$quantity added to cart")
                         }
+
                         selectedDish = null
                         quantity = 1
                     },
@@ -110,7 +110,7 @@ fun HomeScreen(navController: NavController) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Top bar with menu
+            // Top bar with dropdown
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                 Box {
                     IconButton(

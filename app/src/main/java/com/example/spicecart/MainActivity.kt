@@ -43,18 +43,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// 🔄 Root Nav: Splash/Login/Signup → Bottom Nav
 @Composable
-fun AppNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") { SplashScreen(navController) }
-        composable("login") { LoginScreen(navController) }
-        composable("signup") { SignupScreen(navController) }
-        composable("main") { BottomNavigationContainer() }
+fun AppNavigation(rootNavController: NavHostController) {
+    NavHost(navController = rootNavController, startDestination = "splash") {
+        composable("splash") { SplashScreen(rootNavController) }
+        composable("login") { LoginScreen(rootNavController) }
+        composable("signup") { SignupScreen(rootNavController) }
+        composable("main") { BottomNavigationContainer(rootNavController) }
     }
 }
 
-// ✅ Splash Screen
 @Composable
 fun SplashScreen(navController: NavController) {
     LaunchedEffect(Unit) {
@@ -88,10 +86,9 @@ fun SplashScreen(navController: NavController) {
     }
 }
 
-// ✅ Bottom Navigation Container
 @Composable
-fun BottomNavigationContainer() {
-    val navController = rememberNavController()
+fun BottomNavigationContainer(rootNavController: NavController) {
+    val bottomNavController = rememberNavController()
     val items = listOf(
         BottomNavItem("Home", "home", Icons.Default.Home),
         BottomNavItem("My Orders", "orders", Icons.Default.List),
@@ -111,8 +108,10 @@ fun BottomNavigationContainer() {
                         selected = selectedItem == index,
                         onClick = {
                             selectedItem = index
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            bottomNavController.navigate(item.route) {
+                                popUpTo(bottomNavController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -123,14 +122,13 @@ fun BottomNavigationContainer() {
         }
     ) { innerPadding ->
         NavHost(
-            navController = navController,
+            navController = bottomNavController,
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { HomeScreen(navController) }
+            composable("home") { HomeScreen(rootNavController) }
             composable("orders") { OrdersScreen() }
-            composable("cart") { CartScreen(navController) }
-
+            composable("cart") { CartScreen(rootNavController) }
             composable("payment") { PaymentScreen() }
             composable("profile") { ProfileScreen() }
         }
