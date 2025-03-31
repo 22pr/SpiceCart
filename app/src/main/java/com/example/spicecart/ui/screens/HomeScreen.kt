@@ -1,8 +1,11 @@
 package com.example.spicecart.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,16 +15,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
+import com.example.spicecart.R
 
+data class Dish(val name: String, val image: Int, val price: Double, val category: String)
 
 @Composable
-fun HomeScreen(navController: NavController)
- {
+fun HomeScreen(navController: NavController) {
     var menuExpanded by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf("All") }
+
+    val categories = listOf("All", "Biryani", "South Indian", "Snacks", "Sweets", "Tandoori")
+
+    val allDishes = listOf(
+        Dish("Hyderabadi Biryani", R.drawable.biryani, 6.50, "Biryani"),
+        Dish("Paneer Butter Masala", R.drawable.paneer, 5.99, "Tandoori"),
+        Dish("Idli & Chutney", R.drawable.idli, 3.00, "South Indian"),
+        Dish("Kachori", R.drawable.kachori, 2.50, "Snacks"),
+        Dish("Rasgulla", R.drawable.rasgulla, 2.20, "Sweets"),
+        Dish("Tandoori Chicken", R.drawable.tandoori_chicken, 7.20, "Tandoori")
+    )
+
+    val filteredDishes = if (selectedCategory == "All") allDishes else allDishes.filter { it.category == selectedCategory }
 
     Column(
         modifier = Modifier
@@ -29,11 +49,9 @@ fun HomeScreen(navController: NavController)
             .background(Color(0xFFF5E1C8))
             .padding(16.dp)
     ) {
-        // Top App Bar Row
+        // Top Bar
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.Start
         ) {
@@ -61,43 +79,34 @@ fun HomeScreen(navController: NavController)
                             navController.navigate("profile")
                             menuExpanded = false
                         }
-
                     )
-                    DropdownMenuItem(
-                        text = { Text("Settings") },
-                        onClick = { /* Navigate to Settings */ menuExpanded = false }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("About") },
-                        onClick = { /* Navigate to About */ menuExpanded = false }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Privacy Policy") },
-                        onClick = { /* Navigate to Privacy Policy */ menuExpanded = false }
-                    )
+                    DropdownMenuItem(text = { Text("Settings") }, onClick = { menuExpanded = false })
+                    DropdownMenuItem(text = { Text("About") }, onClick = { menuExpanded = false })
+                    DropdownMenuItem(text = { Text("Privacy Policy") }, onClick = { menuExpanded = false })
                 }
             }
         }
 
-        // Welcome Text
+        Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             text = "Welcome to SpiceCart!",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF5D4037),
-            modifier = Modifier.padding(vertical = 8.dp)
+            color = Color(0xFF5D4037)
         )
 
         Text(
-            text = "Authentic Indian food delivered to you",
+            text = "Authentic Indian food delivered to your doorstep",
             fontSize = 16.sp,
             color = Color(0xFF8D6E63)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Category Filters
         Text(
-            text = "Popular Categories",
+            text = "Filter by Category",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF5D4037)
@@ -105,42 +114,79 @@ fun HomeScreen(navController: NavController)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(5) { index ->
-                CategoryCard(
-                    title = when (index) {
-                        0 -> "Biryani"
-                        1 -> "South Indian"
-                        2 -> "Snacks"
-                        3 -> "Sweets"
-                        else -> "Tandoori"
-                    }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(categories) { category ->
+                FilterChip(
+                    selected = selectedCategory == category,
+                    onClick = { selectedCategory = category },
+                    label = { Text(category) }
                 )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Dishes",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF5D4037)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            items(filteredDishes) { dish ->
+                DishCard(dish)
             }
         }
     }
 }
 
 @Composable
-fun CategoryCard(title: String) {
+fun DishCard(dish: Dish) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
         shadowElevation = 4.dp,
+        color = Color.White,
         modifier = Modifier
-            .width(140.dp)
-            .height(100.dp)
+            .width(220.dp)
+            .height(180.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF5D4037)
+        Column {
+            Image(
+                painter = painterResource(id = dish.image),
+                contentDescription = dish.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .height(100.dp)
+                    .fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = dish.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF5D4037),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+            Text(
+                text = "£${"%.2f".format(dish.price)}", // 💷 Price in Pounds
+                fontSize = 14.sp,
+                color = Color(0xFF8D6E63),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { /* Add to cart logic */ },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth()
+                    .height(36.dp)
+            ) {
+                Text("Add to Cart", color = Color.Black, fontSize = 14.sp)
+            }
         }
     }
 }
