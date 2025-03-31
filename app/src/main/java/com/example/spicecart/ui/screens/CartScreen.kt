@@ -46,7 +46,13 @@ fun CartScreen(navController: NavController) {
                 modifier = Modifier.weight(1f)
             ) {
                 items(cartItems) { item ->
-                    CartItemRow(item)
+                    CartItemRow(item = item, onQuantityChanged = { updatedItem ->
+                        // Update state to trigger recomposition
+                        val index = cartItems.indexOfFirst { it.dish.name == updatedItem.dish.name }
+                        if (index != -1) {
+                            cartItems[index] = updatedItem.copy()
+                        }
+                    })
                 }
             }
 
@@ -61,7 +67,7 @@ fun CartScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { navController.navigate("payment") }, //  Now navigates to Payment
+                onClick = { navController.navigate("payment") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -72,7 +78,9 @@ fun CartScreen(navController: NavController) {
 }
 
 @Composable
-fun CartItemRow(item: CartItem) {
+fun CartItemRow(item: CartItem, onQuantityChanged: (CartItem) -> Unit) {
+    var quantity by remember { mutableStateOf(item.quantity) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -88,7 +96,7 @@ fun CartItemRow(item: CartItem) {
                 color = Color(0xFF5D4037)
             )
             Text(
-                text = "£${"%.2f".format(item.dish.price)} x ${item.quantity}",
+                text = "£${"%.2f".format(item.dish.price)} x $quantity",
                 color = Color.Gray,
                 fontSize = 14.sp
             )
@@ -97,8 +105,10 @@ fun CartItemRow(item: CartItem) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(
                 onClick = {
-                    if (item.quantity > 1) {
-                        item.quantity--
+                    if (quantity > 1) {
+                        quantity--
+                        item.quantity = quantity
+                        onQuantityChanged(item)
                     } else {
                         cartItems.remove(item)
                     }
@@ -110,13 +120,17 @@ fun CartItemRow(item: CartItem) {
             }
 
             Text(
-                text = "${item.quantity}",
+                text = "$quantity",
                 modifier = Modifier.padding(horizontal = 8.dp),
                 fontSize = 16.sp
             )
 
             OutlinedButton(
-                onClick = { item.quantity++ },
+                onClick = {
+                    quantity++
+                    item.quantity = quantity
+                    onQuantityChanged(item)
+                },
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.size(32.dp)
             ) {

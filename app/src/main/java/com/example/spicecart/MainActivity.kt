@@ -29,10 +29,6 @@ import androidx.navigation.compose.*
 import com.example.spicecart.ui.theme.SpiceCartTheme
 import kotlinx.coroutines.delay
 import com.example.spicecart.ui.screens.*
-import com.example.spicecart.ui.screens.ProfileScreen
-
-
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +43,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Root Navigation for Splash/Login/Signup -> Bottom Navigation
+// 🔄 Root Nav: Splash/Login/Signup → Bottom Nav
 @Composable
 fun AppNavigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "splash") {
@@ -55,11 +51,10 @@ fun AppNavigation(navController: NavHostController) {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignupScreen(navController) }
         composable("main") { BottomNavigationContainer() }
-        composable("profile") { ProfileScreen() }
-
     }
 }
 
+// ✅ Splash Screen
 @Composable
 fun SplashScreen(navController: NavController) {
     LaunchedEffect(Unit) {
@@ -93,7 +88,7 @@ fun SplashScreen(navController: NavController) {
     }
 }
 
-
+// ✅ Bottom Navigation Container
 @Composable
 fun BottomNavigationContainer() {
     val navController = rememberNavController()
@@ -102,7 +97,6 @@ fun BottomNavigationContainer() {
         BottomNavItem("My Orders", "orders", Icons.Default.List),
         BottomNavItem("Cart", "cart", Icons.Default.ShoppingCart),
         BottomNavItem("Payment", "payment", Icons.Default.AccountBalanceWallet)
-
     )
 
     var selectedItem by remember { mutableStateOf(0) }
@@ -134,9 +128,9 @@ fun BottomNavigationContainer() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("home") { HomeScreen(navController) }
-
             composable("orders") { OrdersScreen() }
-            composable("cart") { CartScreen() }
+            composable("cart") { CartScreen(navController) }
+
             composable("payment") { PaymentScreen() }
             composable("profile") { ProfileScreen() }
         }
@@ -148,4 +142,3 @@ data class BottomNavItem(
     val route: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector
 )
-
