@@ -25,9 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import com.example.spicecart.ui.screens.*
 import com.example.spicecart.ui.theme.SpiceCartTheme
 import kotlinx.coroutines.delay
-import com.example.spicecart.ui.screens.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +49,10 @@ fun AppNavigation(rootNavController: NavHostController) {
         composable("login") { LoginScreen(rootNavController) }
         composable("signup") { SignupScreen(rootNavController) }
         composable("main") { BottomNavigationContainer(rootNavController) }
-        composable("payment") { PaymentScreen() } // ✅ Accessible globally
+
+        // Global screens (accessible from anywhere)
+        composable("payment") { PaymentScreen(navController = rootNavController) }
+        composable("orders") { OrdersScreen() }
         composable("profile") { ProfileScreen() }
     }
 }
@@ -90,12 +93,10 @@ fun SplashScreen(navController: NavController) {
 @Composable
 fun BottomNavigationContainer(rootNavController: NavController) {
     val bottomNavController = rememberNavController()
-
     val items = listOf(
         BottomNavItem("Home", "home", Icons.Default.Home),
         BottomNavItem("My Orders", "orders", Icons.Default.List),
-        BottomNavItem("Cart", "cart", Icons.Default.ShoppingCart),
-        BottomNavItem("Payment", "payment", Icons.Default.AccountBalanceWallet)
+        BottomNavItem("Cart", "cart", Icons.Default.ShoppingCart)
     )
 
     var selectedItem by remember { mutableStateOf(0) }
@@ -135,8 +136,7 @@ fun BottomNavigationContainer(rootNavController: NavController) {
                 )
             }
             composable("orders") { OrdersScreen() }
-            composable("cart") { CartScreen(navController = rootNavController) } // ✅ uses root controller
-            composable("payment") { PaymentScreen() }
+            composable("cart") { CartScreen(navController = rootNavController) }
         }
     }
 }

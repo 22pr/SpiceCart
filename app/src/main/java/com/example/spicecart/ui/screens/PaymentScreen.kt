@@ -14,10 +14,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun PaymentScreen() {
+fun PaymentScreen(navController: NavController) {
     val deliveryCharge = 2.50
     val subtotal = cartItems.sumOf { it.dish.price * it.quantity }
     val total = subtotal + deliveryCharge
@@ -107,12 +109,8 @@ fun PaymentScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage ?: "",
-                    color = Color.Red,
-                    fontSize = 14.sp
-                )
+            errorMessage?.let {
+                Text(text = it, color = Color.Red, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -133,10 +131,21 @@ fun PaymentScreen() {
                         errorMessage = "Please enter all valid card and address details"
                     } else {
                         errorMessage = null
-                        cartItems.clear()
                         paymentSuccess = true
+
+                        // Add current cart to order history
+                        val order = Order(
+                            items = cartItems.map { it.copy() },
+                            status = "Accepted",
+                            eta = "Delivery in 30 mins"
+                        )
+                        orderHistory.add(order)
+                        cartItems.clear()
+
                         scope.launch {
                             snackbarHostState.showSnackbar("Payment successful! Thank you 🎉")
+                            delay(1000)
+                            navController.navigate("orders")
                         }
                     }
                 },
