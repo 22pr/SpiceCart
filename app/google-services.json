@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "127978181548",
+    "project_id": "spicecart-3625e",
+    "storage_bucket": "spicecart-3625e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127978181548:android:1c88b27d2dbb433bd2a009",
+        "android_client_info": {
+          "package_name": "com.example.spicecart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT2gaR7eh8qawL0sKBAzMYS-mtcHdnCHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

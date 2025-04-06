@@ -1,6 +1,7 @@
 package com.example.spicecart
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,16 +20,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.spicecart.ui.theme.SpiceCartTheme
-
+import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,18 +46,23 @@ class LoginActivity : ComponentActivity() {
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
+    val auth = remember { FirebaseAuth.getInstance() }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
     val isLoginEnabled = emailError == null && passwordError == null && email.isNotEmpty() && password.isNotEmpty()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5E1C8)), // Beige Background
+            .background(Color(0xFFF5E1C8)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -72,24 +78,17 @@ fun LoginScreen(navController: NavController) {
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Welcome Back!",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF5D4037) // Deep Brown
-            )
-
+            Text("Welcome Back!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Email Field
+            // Email
             OutlinedTextField(
                 value = email,
                 onValueChange = {
                     email = it
                     emailError = when {
-                        it.isEmpty() -> "Email cannot be empty"
-                        !android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches() -> "Invalid email format"
+                        it.isBlank() -> "Email cannot be empty"
+                        !android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches() -> "Invalid email"
                         else -> null
                     }
                 },
@@ -97,32 +96,23 @@ fun LoginScreen(navController: NavController) {
                 leadingIcon = { Icon(Icons.Filled.Email, contentDescription = "Email Icon") },
                 singleLine = true,
                 isError = emailError != null,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color(0xFF5D4037),
-                    cursorColor = Color(0xFF5D4037)
-                ),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (emailError != null) {
-                Text(
-                    text = emailError!!,
-                    color = Color.Red,
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.Start).padding(top = 4.dp)
-                )
+            emailError?.let {
+                Text(it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start).padding(top = 4.dp))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password Field
+            // Password
             OutlinedTextField(
                 value = password,
                 onValueChange = {
                     password = it
                     passwordError = when {
-                        it.isEmpty() -> "Password cannot be empty"
-                        it.length < 6 -> "Password must be at least 6 characters"
+                        it.isBlank() -> "Password cannot be empty"
+                        it.length < 6 -> "Minimum 6 characters"
                         else -> null
                     }
                 },
@@ -137,34 +127,23 @@ fun LoginScreen(navController: NavController) {
                     )
                 },
                 singleLine = true,
-                isError = passwordError != null,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color(0xFF5D4037),
-                    cursorColor = Color(0xFF5D4037)
-                ),
+                isError = passwordError != null,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (passwordError != null) {
-                Text(
-                    text = passwordError!!,
-                    color = Color.Red,
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.Start).padding(top = 4.dp)
-                )
+            passwordError?.let {
+                Text(it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start).padding(top = 4.dp))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Forgot Password
             Text(
-                text = "Forgot Password?",
+                "Forgot Password?",
                 fontSize = 14.sp,
                 color = Color(0xFF5D4037),
                 modifier = Modifier
                     .align(Alignment.End)
-                    .clickable { /* Navigate to Forgot Password */ }
+                    .clickable { /* TODO */ }
                     .padding(4.dp)
             )
 
@@ -172,58 +151,45 @@ fun LoginScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    // Allow dummy login for now
-                    if (email.isNotEmpty() && password.isNotEmpty()) {
-                        navController.navigate("main") {
-                            popUpTo("login") { inclusive = true }
+                    isLoading = true
+                    auth.signInWithEmailAndPassword(email.trim(), password.trim())
+                        .addOnCompleteListener { task ->
+                            isLoading = false
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+                                navController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                Toast.makeText(context, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                            }
                         }
-                    }
                 },
-                enabled = email.isNotEmpty() && password.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
-                shape = RoundedCornerShape(10.dp),
+                enabled = isLoginEnabled && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
+                shape = RoundedCornerShape(10.dp)
             ) {
-                Text(
-                    text = "Login",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                Text("Login", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             }
-
-
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Signup Option (Now Navigates to Signup Screen)
             Row {
-                Text(
-                    text = "Don't have an account?",
-                    fontSize = 14.sp,
-                    color = Color(0xFF5D4037)
-                )
+                Text("Don't have an account?", fontSize = 14.sp, color = Color(0xFF5D4037))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Sign Up",
                     fontSize = 14.sp,
-                    color = Color.Blue,
                     fontWeight = FontWeight.Bold,
+                    color = Color.Blue,
                     modifier = Modifier.clickable {
-                        navController.navigate("signup") //  Navigate to Signup Screen
+                        navController.navigate("signup")
                     }
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    SpiceCartTheme {
-        LoginScreen(rememberNavController())
     }
 }
