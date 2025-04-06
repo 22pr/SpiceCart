@@ -1,6 +1,7 @@
 package com.example.spicecart
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,16 +11,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
@@ -29,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.spicecart.ui.theme.SpiceCartTheme
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class SignupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +45,8 @@ class SignupActivity : ComponentActivity() {
 
 @Composable
 fun SignupScreen(navController: NavController) {
+    val context = LocalContext.current
+
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -62,7 +64,7 @@ fun SignupScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5E1C8)), // Beige Background
+            .background(Color(0xFFF5E1C8)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -83,12 +85,11 @@ fun SignupScreen(navController: NavController) {
                 text = "Create an Account",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF5D4037) // Deep Brown
+                color = Color(0xFF5D4037)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Full Name Field
             OutlinedTextField(
                 value = fullName,
                 onValueChange = {
@@ -96,18 +97,17 @@ fun SignupScreen(navController: NavController) {
                     fullNameError = if (it.isEmpty()) "Full name cannot be empty" else null
                 },
                 label = { Text("Full Name") },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = "Full Name Icon") },
-                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
                 isError = fullNameError != null,
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             fullNameError?.let {
-                Text(text = it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+                Text(it, color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Email Field
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -119,18 +119,17 @@ fun SignupScreen(navController: NavController) {
                     }
                 },
                 label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = "Email Icon") },
-                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
                 isError = emailError != null,
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             emailError?.let {
-                Text(text = it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+                Text(it, color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -142,23 +141,22 @@ fun SignupScreen(navController: NavController) {
                     }
                 },
                 label = { Text("Password") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "Password Icon") },
+                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
                 trailingIcon = {
                     val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    Icon(icon, contentDescription = "Toggle Password", modifier = Modifier.clickable { passwordVisible = !passwordVisible })
+                    Icon(icon, contentDescription = null, modifier = Modifier.clickable { passwordVisible = !passwordVisible })
                 },
-                singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 isError = passwordError != null,
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             passwordError?.let {
-                Text(text = it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+                Text(it, color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Confirm Password Field
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = {
@@ -170,41 +168,44 @@ fun SignupScreen(navController: NavController) {
                     }
                 },
                 label = { Text("Confirm Password") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "Confirm Password Icon") },
-                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
                 isError = confirmPasswordError != null,
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             confirmPasswordError?.let {
-                Text(text = it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+                Text(it, color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Signup Button
             Button(
-                onClick = { /* Perform Signup Logic */ },
-                enabled = isSignupEnabled, // Button only enabled if all inputs are valid
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)), // Golden Yellow
+                onClick = {
+                    Firebase.auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Signup successful", Toast.LENGTH_SHORT).show()
+                                navController.navigate("login")
+                            } else {
+                                Toast.makeText(context, "Signup failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                },
+                enabled = isSignupEnabled,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text(
-                    text = "Sign Up",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Already have an account? Login
             Row {
-                Text(text = "Already have an account?", fontSize = 14.sp, color = Color(0xFF5D4037))
+                Text("Already have an account?", fontSize = 14.sp, color = Color(0xFF5D4037))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Login",
+                    "Login",
                     fontSize = 14.sp,
                     color = Color.Blue,
                     fontWeight = FontWeight.Bold,
@@ -212,13 +213,5 @@ fun SignupScreen(navController: NavController) {
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SignupScreenPreview() {
-    SpiceCartTheme {
-        SignupScreen(rememberNavController())
     }
 }
