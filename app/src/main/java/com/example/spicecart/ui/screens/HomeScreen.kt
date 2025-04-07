@@ -25,7 +25,6 @@ import com.example.spicecart.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Shared cart list
 val cartItems = mutableStateListOf<CartItem>()
 
 data class Dish(val name: String, val image: Int, val price: Double, val category: String)
@@ -34,8 +33,8 @@ data class CartItem(val dish: Dish, var quantity: Int)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    rootNavController: NavController, // used for global nav like cart/profile
-    localNavController: NavController // used for bottom nav tab switching
+    rootNavController: NavController,
+    localNavController: NavController
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("All") }
@@ -79,11 +78,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(onClick = { if (quantity > 1) quantity-- }) { Text("-") }
-                    Text(
-                        text = "$quantity",
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                    Text(text = "$quantity", fontSize = 18.sp, modifier = Modifier.padding(horizontal = 16.dp))
                     Button(onClick = { quantity++ }) { Text("+") }
                 }
 
@@ -99,9 +94,12 @@ fun HomeScreen(
                             sheetState.hide()
                             snackbarHostState.showSnackbar("${dish.name} x$quantity added to cart")
                             delay(300)
-                            localNavController.navigate("cart")
+                            localNavController.navigate("cart") {
+                                popUpTo(localNavController.graph.startDestinationId) { inclusive = false }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
-
 
                         selectedDish = null
                         quantity = 1
@@ -143,7 +141,6 @@ fun HomeScreen(
                         DropdownMenuItem(text = { Text("About") }, onClick = { menuExpanded = false })
                         DropdownMenuItem(text = { Text("Privacy Policy") }, onClick = { menuExpanded = false })
                         DropdownMenuItem(text = { Text("Logout") }, onClick = {
-                            // Navigate to login and clear backstack
                             rootNavController.navigate("login") {
                                 popUpTo(0) { inclusive = true }
                             }

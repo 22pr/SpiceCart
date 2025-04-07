@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,11 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.statusBars
 
-// Represents a single order
 data class Order(
     val items: List<CartItem>,
     val status: String,
@@ -27,7 +29,7 @@ data class Order(
 val orderHistory = mutableStateListOf<Order>()
 
 @Composable
-fun OrdersScreen() {
+fun OrdersScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,6 +37,11 @@ fun OrdersScreen() {
             .padding(16.dp)
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
     ) {
+        //  Back Button
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5D4037))
+        }
+
         Text(
             text = "My Orders",
             style = MaterialTheme.typography.headlineMedium,
@@ -52,7 +59,7 @@ fun OrdersScreen() {
         } else {
             val latestOrder = orderHistory.last()
 
-            // ✅ Current Order Section
+            //  Current Order Section
             Text(
                 text = "Current Order",
                 fontWeight = FontWeight.Bold,
@@ -67,7 +74,7 @@ fun OrdersScreen() {
             Divider(thickness = 1.dp, color = Color.Gray)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ✅ Order History Section
+            //  Order History Section
             Text(
                 text = "Order History",
                 fontWeight = FontWeight.SemiBold,

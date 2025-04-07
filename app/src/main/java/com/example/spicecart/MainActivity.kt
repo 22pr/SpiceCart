@@ -52,7 +52,8 @@ fun AppNavigation(rootNavController: NavHostController) {
 
         // Global screens (accessible from anywhere)
         composable("payment") { PaymentScreen(navController = rootNavController) }
-        composable("orders") { OrdersScreen() }
+        composable("orders") { OrdersScreen(navController = rootNavController) }
+
         composable("profile") { ProfileScreen() }
     }
 }
@@ -135,7 +136,9 @@ fun BottomNavigationContainer(rootNavController: NavController) {
                     localNavController = bottomNavController
                 )
             }
-            composable("orders") { OrdersScreen() }
+            composable("orders") {
+                OrdersScreen(navController = rootNavController)
+            }
             composable("cart") { CartScreen(navController = rootNavController) }
         }
     }

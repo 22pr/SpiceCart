@@ -3,6 +3,8 @@ package com.example.spicecart.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,6 +46,13 @@ fun PaymentScreen(navController: NavController) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            // Back button at the top-left
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5D4037))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = "Payment",
                 style = MaterialTheme.typography.headlineMedium,
@@ -133,7 +142,7 @@ fun PaymentScreen(navController: NavController) {
                         errorMessage = null
                         paymentSuccess = true
 
-                        // Add current cart to order history
+                        // Save the order and clear cart
                         val order = Order(
                             items = cartItems.map { it.copy() },
                             status = "Accepted",
