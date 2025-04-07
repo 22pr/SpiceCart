@@ -49,6 +49,8 @@ fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
 
+    var showGDPRDialog by remember { mutableStateOf(true) }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -58,6 +60,26 @@ fun LoginScreen(navController: NavController) {
     var isLoading by remember { mutableStateOf(false) }
 
     val isLoginEnabled = emailError == null && passwordError == null && email.isNotEmpty() && password.isNotEmpty()
+
+    if (showGDPRDialog) {
+        AlertDialog(
+            onDismissRequest = {},
+            confirmButton = {
+                TextButton(onClick = { showGDPRDialog = false }) {
+                    Text("I Agree")
+                }
+            },
+            title = { Text("Privacy & GDPR Compliance") },
+            text = {
+                Text(
+                    "By using SpiceCart, you agree to our Privacy Policy and that your data may be processed in accordance with GDPR guidelines. We do not store your personal information without your consent."
+                )
+            },
+            containerColor = Color.White,
+            titleContentColor = Color(0xFF5D4037),
+            textContentColor = Color.DarkGray
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -81,7 +103,7 @@ fun LoginScreen(navController: NavController) {
             Text("Welcome Back!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Email
+            // Email Field
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -105,7 +127,7 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password
+            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = {

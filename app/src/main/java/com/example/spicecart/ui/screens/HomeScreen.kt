@@ -142,6 +142,13 @@ fun HomeScreen(
                         DropdownMenuItem(text = { Text("Settings") }, onClick = { menuExpanded = false })
                         DropdownMenuItem(text = { Text("About") }, onClick = { menuExpanded = false })
                         DropdownMenuItem(text = { Text("Privacy Policy") }, onClick = { menuExpanded = false })
+                        DropdownMenuItem(text = { Text("Logout") }, onClick = {
+                            // Navigate to login and clear backstack
+                            rootNavController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                            menuExpanded = false
+                        })
                     }
                 }
             }
