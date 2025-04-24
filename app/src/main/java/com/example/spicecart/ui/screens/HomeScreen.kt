@@ -1,5 +1,6 @@
 package com.example.spicecart.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -40,6 +41,7 @@ fun HomeScreen(
     var selectedCategory by remember { mutableStateOf("All") }
     var selectedDish by remember { mutableStateOf<Dish?>(null) }
     var quantity by remember { mutableStateOf(1) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
@@ -59,6 +61,19 @@ fun HomeScreen(
     val filteredDishes = if (selectedCategory == "All") allDishes
     else allDishes.filter { it.category == selectedCategory }
 
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyDialog = false }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Privacy Policy") },
+            text = { Text("By using this app, you agree to our Privacy Policy terms and conditions.") }
+        )
+    }
+
     selectedDish?.let { dish ->
         ModalBottomSheet(
             onDismissRequest = {
@@ -71,25 +86,21 @@ fun HomeScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Add ${dish.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(12.dp))
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(onClick = { if (quantity > 1) quantity-- }) { Text("-") }
-                    Text(text = "$quantity", fontSize = 18.sp, modifier = Modifier.padding(horizontal = 16.dp))
+                    Text("$quantity", fontSize = 18.sp, modifier = Modifier.padding(horizontal = 16.dp))
                     Button(onClick = { quantity++ }) { Text("+") }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = {
                         val existing = cartItems.find { it.dish.name == dish.name }
                         if (existing != null) existing.quantity += quantity
                         else cartItems.add(CartItem(dish, quantity))
-
                         coroutineScope.launch {
                             sheetState.hide()
                             snackbarHostState.showSnackbar("${dish.name} x$quantity added to cart")
@@ -100,7 +111,6 @@ fun HomeScreen(
                                 restoreState = true
                             }
                         }
-
                         selectedDish = null
                         quantity = 1
                     },
@@ -131,21 +141,35 @@ fun HomeScreen(
                     ) {
                         Icon(Icons.Default.Person, contentDescription = "User Menu", tint = Color(0xFF5D4037))
                     }
-
-                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                        DropdownMenuItem(text = { Text("Profile") }, onClick = {
-                            rootNavController.navigate("profile")
-                            menuExpanded = false
-                        })
-                        DropdownMenuItem(text = { Text("Settings") }, onClick = { menuExpanded = false })
-                        DropdownMenuItem(text = { Text("About") }, onClick = { menuExpanded = false })
-                        DropdownMenuItem(text = { Text("Privacy Policy") }, onClick = { menuExpanded = false })
-                        DropdownMenuItem(text = { Text("Logout") }, onClick = {
-                            rootNavController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Profile") },
+                            onClick = {
+                                val userEmail = "prathima@example.com"
+                                val encodedEmail = Uri.encode(userEmail)
+                                rootNavController.navigate("profile?email=$encodedEmail")
+                                menuExpanded = false
                             }
-                            menuExpanded = false
-                        })
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Privacy Policy") },
+                            onClick = {
+                                showPrivacyDialog = true
+                                menuExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Logout") },
+                            onClick = {
+                                rootNavController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                                menuExpanded = false
+                            }
+                        )
                     }
                 }
             }

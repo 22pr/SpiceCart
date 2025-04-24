@@ -8,7 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -50,11 +49,37 @@ fun AppNavigation(rootNavController: NavHostController) {
         composable("signup") { SignupScreen(rootNavController) }
         composable("main") { BottomNavigationContainer(rootNavController) }
 
-        // Global screens (accessible from anywhere)
+        // Global access
         composable("payment") { PaymentScreen(navController = rootNavController) }
-        composable("orders") { OrdersScreen(navController = rootNavController) }
 
-        composable("profile") { ProfileScreen() }
+        // OrdersScreen with setTab to switch to home tab
+        composable("orders") {
+            OrdersScreen(
+                rootNavController = rootNavController,
+                setTab = { tabRoute ->
+                    rootNavController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "profile?email={email}",
+            arguments = listOf(navArgument("email") {
+                type = NavType.StringType
+                defaultValue = "user@example.com"
+                nullable = false
+            })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: "user@example.com"
+            ProfileScreen(
+                navController = rootNavController,
+                email = email,
+                backStackEntry = backStackEntry
+            )
+        }
+
     }
 }
 
@@ -137,7 +162,18 @@ fun BottomNavigationContainer(rootNavController: NavController) {
                 )
             }
             composable("orders") {
-                OrdersScreen(navController = rootNavController)
+                OrdersScreen(
+                    rootNavController = rootNavController,
+                    setTab = { tabRoute ->
+                        bottomNavController.navigate(tabRoute) {
+                            popUpTo(bottomNavController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
             composable("cart") { CartScreen(navController = rootNavController) }
         }

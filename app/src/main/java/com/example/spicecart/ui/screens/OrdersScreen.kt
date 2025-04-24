@@ -25,11 +25,13 @@ data class Order(
     val eta: String
 )
 
-// Shared list to store orders
 val orderHistory = mutableStateListOf<Order>()
 
 @Composable
-fun OrdersScreen(navController: NavController) {
+fun OrdersScreen(
+    rootNavController: NavController,
+    setTab: (String) -> Unit // Function to trigger bottom nav tab selection
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -37,8 +39,12 @@ fun OrdersScreen(navController: NavController) {
             .padding(16.dp)
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
     ) {
-        //  Back Button
-        IconButton(onClick = { navController.popBackStack() }) {
+        IconButton(
+            onClick = {
+                // Select Home tab using the callback
+                setTab("home")
+            }
+        ) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5D4037))
         }
 
@@ -59,7 +65,6 @@ fun OrdersScreen(navController: NavController) {
         } else {
             val latestOrder = orderHistory.last()
 
-            //  Current Order Section
             Text(
                 text = "Current Order",
                 fontWeight = FontWeight.Bold,
@@ -74,13 +79,13 @@ fun OrdersScreen(navController: NavController) {
             Divider(thickness = 1.dp, color = Color.Gray)
             Spacer(modifier = Modifier.height(12.dp))
 
-            //  Order History Section
             Text(
                 text = "Order History",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
                 color = Color(0xFF5D4037)
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(
