@@ -1,6 +1,8 @@
 package com.example.spicecart.ui.screens
 
+import android.location.Geocoder
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -10,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -17,9 +20,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.net.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(navController: NavController) {
     val deliveryCharge = 2.50
@@ -32,11 +43,43 @@ fun PaymentScreen(navController: NavController) {
     var cvv by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
 
+    var suggestions by remember { mutableStateOf(listOf<AutocompletePrediction>()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var paymentSuccess by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    val context = LocalContext.current
+    val firestore = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val currentUserEmail = auth.currentUser?.email
+
+    // Initialize Places API
+    val placesClient = remember {
+        if (!Places.isInitialized()) {
+            Places.initialize(context.applicationContext, "AIzaSyAHfUTGjLSl6WHruPm0j8n7TAsAWoVFiZk")
+        }
+        Places.createClient(context)
+    }
+    val sessionToken = remember { AutocompleteSessionToken.newInstance() }
+
+    // Fetch address from Firestore on screen load
+    LaunchedEffect(currentUserEmail) {
+        if (currentUserEmail != null) {
+            try {
+                val document = firestore.collection("users")
+                    .document(currentUserEmail)
+                    .get()
+                    .await()
+                if (document.exists()) {
+                    address = document.getString("address") ?: ""
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
@@ -46,7 +89,6 @@ fun PaymentScreen(navController: NavController) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Back button at the top-left
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5D4037))
             }
@@ -109,12 +151,45 @@ fun PaymentScreen(navController: NavController) {
 
             OutlinedTextField(
                 value = address,
-                onValueChange = { address = it },
+                onValueChange = { query ->
+                    address = query
+                    if (query.length >= 3) {
+                        val request = FindAutocompletePredictionsRequest.builder()
+                            .setSessionToken(sessionToken)
+                            .setQuery(query)
+                            .build()
+
+                        placesClient.findAutocompletePredictions(request)
+                            .addOnSuccessListener { response ->
+                                suggestions = response.autocompletePredictions
+                            }
+                            .addOnFailureListener {
+                                suggestions = emptyList()
+                            }
+                    } else {
+                        suggestions = emptyList()
+                    }
+                },
                 label = { Text("Delivery Address") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
+
+            // Show suggestions
+            suggestions.forEach { prediction ->
+                Text(
+                    text = prediction.getFullText(null).toString(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            address = prediction.getFullText(null).toString()
+                            suggestions = emptyList()
+                        }
+                        .padding(8.dp),
+                    fontSize = 14.sp,
+                    color = Color.DarkGray
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -142,13 +217,21 @@ fun PaymentScreen(navController: NavController) {
                         errorMessage = null
                         paymentSuccess = true
 
-                        // Save the order and clear cart
                         val order = Order(
                             items = cartItems.map { it.copy() },
                             status = "Accepted",
                             eta = "Delivery in 30 mins"
                         )
+
                         orderHistory.add(order)
+
+                        if (currentUserEmail != null) {
+                            firestore.collection("users")
+                                .document(currentUserEmail)
+                                .collection("orders")
+                                .add(order)
+                        }
+
                         cartItems.clear()
 
                         scope.launch {

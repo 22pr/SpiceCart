@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 @Composable
@@ -30,6 +31,8 @@ fun ProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val firestore = FirebaseFirestore.getInstance()
+
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
             modifier = Modifier
@@ -38,7 +41,6 @@ fun ProfileScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // ✅ Fixed Back Button Navigation
             IconButton(onClick = {
                 navController.navigate("main") {
                     popUpTo("main") { inclusive = true }
@@ -96,9 +98,25 @@ fun ProfileScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Profile updated successfully!")
-                    }
+                    val userMap = hashMapOf(
+                        "name" to nameState.value,
+                        "email" to actualEmail,
+                        "address" to addressState.value
+                    )
+
+                    firestore.collection("users")
+                        .document(actualEmail)
+                        .set(userMap)
+                        .addOnSuccessListener {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Profile updated successfully! ")
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Error: ${e.localizedMessage}")
+                            }
+                        }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))

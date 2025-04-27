@@ -18,11 +18,14 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.statusBars
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 data class Order(
-    val items: List<CartItem>,
-    val status: String,
-    val eta: String
+    val items: List<CartItem> = emptyList(),
+    val status: String = "",
+    val eta: String = ""
 )
 
 val orderHistory = mutableStateListOf<Order>()
@@ -30,8 +33,35 @@ val orderHistory = mutableStateListOf<Order>()
 @Composable
 fun OrdersScreen(
     rootNavController: NavController,
-    setTab: (String) -> Unit // Function to trigger bottom nav tab selection
+    setTab: (String) -> Unit
 ) {
+    val firestore = remember { FirebaseFirestore.getInstance() }
+    val auth = remember { FirebaseAuth.getInstance() }
+    val currentUserEmail = auth.currentUser?.email
+
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(currentUserEmail) {
+        if (currentUserEmail != null) {
+            try {
+                val snapshot = firestore.collection("users")
+                    .document(currentUserEmail)
+                    .collection("orders")
+                    .get()
+                    .await()
+
+                val fetchedOrders = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Order::class.java)
+                }
+                orderHistory.clear()
+                orderHistory.addAll(fetchedOrders)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            isLoading = false
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -40,10 +70,7 @@ fun OrdersScreen(
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
     ) {
         IconButton(
-            onClick = {
-                // Select Home tab using the callback
-                setTab("home")
-            }
+            onClick = { setTab("home") }
         ) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5D4037))
         }
@@ -56,7 +83,9 @@ fun OrdersScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (orderHistory.isEmpty()) {
+        if (isLoading) {
+            CircularProgressIndicator(color = Color(0xFF5D4037))
+        } else if (orderHistory.isEmpty()) {
             Text(
                 text = "You haven’t placed any orders yet.",
                 style = MaterialTheme.typography.bodyLarge,

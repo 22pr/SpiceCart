@@ -81,4 +81,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
+    implementation(libs.places)
+    implementation(libs.material)
+    implementation(libs.accompanist.permissions)
+
+
 }

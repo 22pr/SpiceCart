@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spicecart.R
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -46,6 +47,7 @@ fun HomeScreen(
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val firestore = FirebaseFirestore.getInstance()
 
     val categories = listOf("All", "Biryani", "South Indian", "Snacks", "Sweets", "Tandoori")
 
@@ -60,6 +62,8 @@ fun HomeScreen(
 
     val filteredDishes = if (selectedCategory == "All") allDishes
     else allDishes.filter { it.category == selectedCategory }
+
+
 
     if (showPrivacyDialog) {
         AlertDialog(
